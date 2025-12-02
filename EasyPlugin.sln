@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35027.167
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyPlugin", "EasyPlugin\EasyPlugin.csproj", "{686351D1-0D4C-4B24-9FB9-5FE54850633B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example_net472", "Example_net472\Example_net472.csproj", "{B5F92103-8245-4ED7-8D75-E2AA60E15FE6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{686351D1-0D4C-4B24-9FB9-5FE54850633B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{686351D1-0D4C-4B24-9FB9-5FE54850633B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{686351D1-0D4C-4B24-9FB9-5FE54850633B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{686351D1-0D4C-4B24-9FB9-5FE54850633B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5F92103-8245-4ED7-8D75-E2AA60E15FE6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5F92103-8245-4ED7-8D75-E2AA60E15FE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5F92103-8245-4ED7-8D75-E2AA60E15FE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5F92103-8245-4ED7-8D75-E2AA60E15FE6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4482CE2F-F88A-415D-BEF8-229E066FC13C}
+	EndGlobalSection
+EndGlobal
