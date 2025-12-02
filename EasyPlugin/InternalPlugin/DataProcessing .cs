@@ -1,4 +1,5 @@
-﻿using EasyPlugin.Core;
+﻿using EasyPlugin.Attriibutes;
+using EasyPlugin.Core;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,6 +10,10 @@ namespace EasyPlugin.InternalPlugin
     /// <summary>
     /// 数据处理工具节点
     /// </summary>
+    [PluginMeta("数据处理插件",
+        description:"用于处理输入数据",
+        version:"V1.0.0.0",
+        author:"EasyPlugin")]
     public class DataProcessing : PluginBase
     {
         public string InputKey { get; set; }

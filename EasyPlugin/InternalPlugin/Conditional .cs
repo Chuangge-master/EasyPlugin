@@ -1,4 +1,5 @@
-﻿using EasyPlugin.Core;
+﻿using EasyPlugin.Attriibutes;
+using EasyPlugin.Core;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,6 +10,10 @@ namespace EasyPlugin.InternalPlugin
     /// <summary>
     /// 条件评估插件
     /// </summary>
+    [PluginMeta("条件评估插件",
+        "用于评估条件是否满足",
+        "V1.0.0.0",
+        "EasyPlugin")]
     public class Conditional : PluginBase
     {
         public string ConditionKey { get; set; }

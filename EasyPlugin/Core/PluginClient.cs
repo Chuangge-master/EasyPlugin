@@ -85,7 +85,7 @@ namespace EasyPlugin.Core
             try
             {
                 // 获取执行组
-                var executionGroups = _dag.GetParallelExecutionGroups();
+                var executionGroups = _dag.GetParallelGroups();
                 OnProgress($"检测到 {executionGroups.Count} 个执行阶段");
 
                 foreach (var group in executionGroups)

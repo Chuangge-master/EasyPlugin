@@ -112,48 +112,58 @@ namespace EasyPlugin.Core
         /// 获取可并行执行的节点组
         /// </summary>
         /// <returns></returns>
-        public List<List<PluginBase>> GetParallelExecutionGroups()
+        public List<List<PluginBase>> GetParallelGroups()
         {
-            var topologicalOrder = TopologicalSort();
             var groups = new List<List<PluginBase>>();
+            var processed = new HashSet<PluginBase>(); // 记录已处理的节点
+            var remaining = new Queue<PluginBase>(_nodes); // 记录未处理的节点
 
-            if (!topologicalOrder.Any())
-                return groups;
-
-            var currentGroup = new List<PluginBase>();
-            var remainingNodes = new Queue<PluginBase>(topologicalOrder);
-
-            while (remainingNodes.Count > 0)
+            while (remaining.Count > 0)
             {
-                var node = remainingNodes.Dequeue();
+                var currentGroup = new List<PluginBase>();
+                var toRemove = new List<PluginBase>();
 
-                // 如果节点所有前置节点都已经在当前组或之前组中处理，则可以加入当前组
-                if (node.Previous.All(dep =>
-                    groups.Any(g => g.Contains(dep)) || currentGroup.Contains(dep)))
+                // 找出所有依赖都已满足的节点
+                foreach (var node in remaining)
                 {
-                    currentGroup.Add(node);
-                }
-                else
-                {
-                    remainingNodes.Enqueue(node); // 放回队列等待下一轮
+                    // 检查该节点的所有依赖是否都已处理
+                    var canExecute = node.Previous.All(dep => processed.Contains(dep));
+
+                    if (canExecute)
+                    {
+                        currentGroup.Add(node);
+                        toRemove.Add(node);
+                    }
                 }
 
-                // 当前组处理完成，开始新的一组
-                if (remainingNodes.Count > 0 && remainingNodes.Peek() != node &&
-                    !remainingNodes.Peek().Previous.Any(dep => currentGroup.Contains(dep)))
+                if (currentGroup.Count == 0)
                 {
-                    groups.Add(new List<PluginBase>(currentGroup));
-                    currentGroup.Clear();
+                    throw new InvalidOperationException("图中存在循环依赖");
                 }
-            }
 
-            if (currentGroup.Any())
-            {
                 groups.Add(currentGroup);
+
+                // 更新处理状态
+                foreach (var node in currentGroup)
+                {
+                    processed.Add(node);
+                    // 从队列中移除已处理的节点
+                    var newQueue = new Queue<PluginBase>();
+                    while (remaining.Count > 0)
+                    {
+                        var item = remaining.Dequeue();
+                        if (!toRemove.Contains(item))
+                        {
+                            newQueue.Enqueue(item);
+                        }
+                    }
+                    remaining = newQueue;
+                }
             }
 
             return groups;
         }
+
         private string GetGraphStructure()
         {
             try

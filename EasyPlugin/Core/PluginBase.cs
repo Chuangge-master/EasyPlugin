@@ -37,7 +37,9 @@ namespace EasyPlugin.Core
         {
             var type = this.GetType();
             var metadataAttr = type.GetCustomAttribute<PluginMetaAttribute>();
-            return $"{metadataAttr?.Name ?? type.Name}({Id}):{metadataAttr?.Version ?? "V1.0.0.0"}\nDescription{metadataAttr?.Description ?? ""} ";
+            return $"{metadataAttr?.Name ?? type.Name}({Id}):{metadataAttr?.Version ?? "V1.0.0.0"}\n" +
+                $"Description：{metadataAttr?.Description ?? ""} \n" +
+                $"Author：{metadataAttr?.Author ?? ""} \n";
         }
     }
 }
