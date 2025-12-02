@@ -62,7 +62,7 @@ namespace EasyPlugin.Core
         /// </summary>
         /// <returns>排序后的节点列表</returns>
         /// <exception cref="CyclicDependencyException">循环依赖异常</exception>
-        public List<PluginBase> TopologicalSort()
+        private List<PluginBase> TopologicalSort()
         {
             var visited = new HashSet<string>();
             var visiting = new HashSet<string>();
@@ -72,14 +72,14 @@ namespace EasyPlugin.Core
             {
                 if (HasCycle(node, visited, visiting, result))
                 {
-                    throw new CyclicDependencyException("Cycle detected in tool dependencies");
+                    throw new CyclicDependencyException();
                 }
             }
 
             // 检查是否所有节点都被访问
             if (visited.Count != _nodes.Count)
             {
-                throw new CyclicDependencyException("Graph contains cycles or disconnected components");
+                throw new CyclicDependencyException();
             }
 
             return result.ToList();
@@ -138,7 +138,7 @@ namespace EasyPlugin.Core
 
                 if (currentGroup.Count == 0)
                 {
-                    throw new InvalidOperationException("图中存在循环依赖");
+                    throw new CyclicDependencyException();
                 }
 
                 groups.Add(currentGroup);

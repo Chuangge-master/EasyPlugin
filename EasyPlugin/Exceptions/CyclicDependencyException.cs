@@ -9,6 +9,6 @@ namespace EasyPlugin.Exceptions
     /// </summary>
     public class CyclicDependencyException : Exception
     {
-        public CyclicDependencyException(string message) : base(message) { }
+        public CyclicDependencyException(string message = "图中存在循环依赖") : base(message) { }
     }
 }
