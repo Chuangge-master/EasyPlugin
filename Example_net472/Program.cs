@@ -2,6 +2,7 @@
 using EasyPlugin.Exceptions;
 using EasyPlugin.InternalPlugin;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Example_net472
@@ -125,36 +126,41 @@ namespace Example_net472
             var dataLoader = new DataProcessing
             {
                 Id = "loader",
-                Name = "数据加载器",
+                Name = "加载器",
                 InputKey = "initial",
                 OutputKey = "rawData",
-                ProcessingFunction = (input) => $"loader_{input}"
+                ProcessingFunction = (input) => $"[loader_{input}]"
             };
 
             var dataProcessor1 = new DataProcessing
             {
                 Id = "processor1",
-                Name = "数据处理器1",
+                Name = "处理器1",
                 InputKey = "rawData",
                 OutputKey = "process1",
-                ProcessingFunction = (input) => $"process1_{input}"
+                ProcessingFunction = (input) => {
+                    Thread.Sleep(20);
+                    return $"[{input}_processed1]";
+                }
             };
             var dataProcessor2 = new DataProcessing
             {
                 Id = "processor2",
-                Name = "数据处理器2",
+                Name = "处理器2",
                 InputKey = "rawData",
                 OutputKey = "process2",
-                ProcessingFunction = (input) => $"process2_{input}"
+                ProcessingFunction = (input) => $"[{input}_processed2]"
             };
 
             var dataCollector = new LambdaPlugin((ctx, output) =>
             {
-                context.SetData(output, $"final_{ctx.GetData<string>("process1") }_{ctx.GetData<string>("process2")}");
+                string InputKey1 = "process1";
+                string InputKey2 = "process2";
+                context.SetData(output, $"[{ctx.GetData<string>(InputKey1)}_{ctx.GetData<string>(InputKey2)}_final]");
             })
             {
                 Id = "collector",
-                Name = "数据收集器",
+                Name = "收集器",
                 OutputKey = "finalResult"
             };
 
@@ -182,13 +188,13 @@ namespace Example_net472
 
             try
             {
-                //打印图中工具信息
+                // 打印图中工具信息
                 Console.WriteLine("\n=== 图中工具信息 ===");
                 foreach (var info in dag.GetGraphNodeInofs())
                 {
                     Console.WriteLine(info);
                 }
-                ///打印图结构
+                // 打印图结构
                 Console.WriteLine("\n=== 图结构 ===");
                 Console.WriteLine(dag.ToString());
 
@@ -203,6 +209,7 @@ namespace Example_net472
                 foreach (var result in results)
                 {
                     Console.WriteLine($"{result.Key}: {(result.Value.Success ? "成功" : "失败")} - {result.Value.Message}");
+                    Console.WriteLine($"运行时间：{result.Value.Runtime}ms");
                 }
 
                 // 输出最终数据

@@ -1,6 +1,7 @@
 ﻿using EasyPlugin.Exceptions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -139,6 +140,8 @@ namespace EasyPlugin.Core
             {
                 Parallel.ForEach(group, options, node =>
                 {
+                    Stopwatch sw = new Stopwatch();
+                    sw.Start();
                     try
                     {
                         OnProgress($"并行执行工具: {node.Name}");
@@ -149,7 +152,8 @@ namespace EasyPlugin.Core
                             parallelResults[node.Id] = result;
                             results[node.Id] = result;
                         }
-
+                        sw.Stop();
+                        result.Runtime = sw.ElapsedMilliseconds.ToString("f3");
                         OnProgress($"工具 {node.Name} 执行 {(result.Success ? "成功" : "失败")}");
                     }
                     catch (Exception ex)
@@ -160,6 +164,8 @@ namespace EasyPlugin.Core
                             parallelResults[node.Id] = errorResult;
                             results[node.Id] = errorResult;
                         }
+                        sw.Stop();
+                        errorResult.Runtime = sw.ElapsedMilliseconds.ToString("f3");
                         OnProgress($"工具 {node.Name} 执行异常: {ex.Message}");
                     }
                 });
@@ -176,12 +182,15 @@ namespace EasyPlugin.Core
         {
             foreach (var node in group)
             {
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
                 try
                 {
                     OnProgress($"串行执行工具: {node.Name}");
                     var result = await node.ExecuteAsync(context);
                     results[node.Id] = result;
-
+                    sw.Stop();
+                    result.Runtime = sw.ElapsedMilliseconds.ToString("f3");
                     OnProgress($"工具 {node.Name} 执行 {(result.Success ? "成功" : "失败")}");
 
                     if (!result.Success && !_config.ContinueOnFailure)
@@ -194,6 +203,8 @@ namespace EasyPlugin.Core
                 {
                     var errorResult = PluginResult.Error($"执行失败: {ex.Message}", ex);
                     results[node.Id] = errorResult;
+                    sw.Stop();
+                    errorResult.Runtime = sw.ElapsedMilliseconds.ToString("f3");
                     OnProgress($"工具 {node.Name} 执行异常: {ex.Message}");
 
                     if (!_config.ContinueOnFailure)

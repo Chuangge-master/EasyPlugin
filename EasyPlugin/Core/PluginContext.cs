@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace EasyPlugin.Core
@@ -26,5 +27,9 @@ namespace EasyPlugin.Core
         }
 
         public bool ContainsKey(string key) => _data.ContainsKey(key);
+        public string[] Keys()
+        {
+            return _data.Keys.ToArray();
+        }
     }
 }
