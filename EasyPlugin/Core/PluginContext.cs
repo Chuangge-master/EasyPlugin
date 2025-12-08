@@ -1,35 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 
 namespace EasyPlugin.Core
 {
-    /// <summary>
-    /// 插件上下文
-    /// </summary>
     public class PluginContext
     {
-        private readonly Dictionary<string, object> _data = new Dictionary<string, object>();
+        public bool Success { get; set; }
+        public string ErrorMessage { get; set; }
+        public object Data { get; set; }
 
-        public T GetData<T>(string key)
+        public PluginContext()
         {
-            if (_data.ContainsKey(key) && _data[key] is T result)
-            {
-                return result;
-            }
-            return default(T);
+            Success = true;
         }
-
-        public void SetData(string key, object value)
+        public PluginContext OK()
         {
-            _data[key] = value;
+            Success = true;
+            return this;
+        }   
+        public PluginContext Error(string message)
+        {
+            Success = false;
+            ErrorMessage = message;
+            return this;
         }
-
-        public bool ContainsKey(string key) => _data.ContainsKey(key);
-        public string[] Keys()
+        public PluginContext SetData(object value)
         {
-            return _data.Keys.ToArray();
+            this.Data = value;
+            return this;
         }
     }
 }

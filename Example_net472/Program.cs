@@ -1,6 +1,4 @@
 ﻿using EasyPlugin.Core;
-using EasyPlugin.Exceptions;
-using EasyPlugin.InternalPlugin;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,215 +9,48 @@ namespace Example_net472
     {
         static void Main(string[] args)
         {
+            //Test1().GetAwaiter().GetResult();
             Test2().GetAwaiter().GetResult();
             Console.ReadLine();
-
         }
-        async public static Task Test()
+        async static Task Test1()
         {
-            // 创建DAG管理器
-            var dag = new PluginDag();
+            //日志事件注册
+            PluginClient.SubscribeToLogs((msg)=> Console.WriteLine(msg));
+            //插件创建
+            var add = PluginClient.Create("加法1", typeof(AddPlugin));
+            var multiply = PluginClient.Create("乘法1", typeof(MultiplyPlugin));
+            //插件执行
+            var add_result = await PluginClient.Run(
+                async ()=> await add.ExecuteAsync(new PluginContext().SetData((2,3))));
+            var multiply_result = await PluginClient.Run(
+                async () => await multiply.ExecuteAsync(new PluginContext().SetData(((int)add_result.Data, 3))));
 
-            // 创建工具节点
-            var dataLoader = new DataProcessing
-            {
-                Id = "loader",
-                Name = "数据加载器",
-                InputKey = "initial",
-                OutputKey = "rawData",
-                ProcessingFunction = (input) => $"processed_{input}"
-            };
-
-            var httpTool = new HttpRequestPlugin
-            {
-                Id = "http",
-                Name = "API请求工具",
-                Url = " https://api.example.com/data ",
-                ResponseKey = "apiResponse"
-            };
-
-            var dataProcessor = new DataProcessing
-            {
-                Id = "processor",
-                Name = "数据处理器",
-                InputKey = "rawData",
-                OutputKey = "finalResult",
-                ProcessingFunction = (input) => $"final_{input}"
-            };
-
-            var conditionalTool = new Conditional
-            {
-                Id = "condition",
-                Name = "条件判断工具",
-                ConditionKey = "apiResponse",
-                Condition = (data) => data != null && data.ToString().Length > 10
-            };
-
-            // 添加节点到DAG
-            dag.AddNode(dataLoader);
-            dag.AddNode(httpTool);
-            dag.AddNode(dataProcessor);
-            dag.AddNode(conditionalTool);
-
-            // 连接节点
-            dag.ConnectNodes(dataLoader, dataProcessor);
-            dag.ConnectNodes(httpTool, conditionalTool);
-
-            // 配置执行器
-            var config = new ExecutionConfig
-            {
-                Mode = ExecutionMode.Parallel,
-                MaxDegreeOfParallelism = 4,
-                ContinueOnFailure = false
-            };
-
-            var executor = new PluginClient(dag, config);
-
-            // 准备执行上下文
-            var context = new PluginContext();
-            context.SetData("initial", "start_data");
-
-            try
-            {
-                //打印图中工具信息
-                Console.WriteLine("\n=== 图中工具信息 ===");
-                foreach (var info in dag.GetGraphNodeInofs())
-                {
-                    Console.WriteLine(info);
-                }
-                ///打印图结构
-                Console.WriteLine("\n=== 图结构 ===");
-                Console.WriteLine(dag.ToString());
-
-                // 执行工具
-                var results = await executor.ExecuteAsync(context);
-
-                //输入执行日志
-                Console.WriteLine("\n=== 执行日志 ===");
-                Console.WriteLine(executor.ExecutionLog);
-                // 输出执行结果
-                Console.WriteLine("\n=== 执行结果汇总 ===");
-                foreach (var result in results)
-                {
-                    Console.WriteLine($"{result.Key}: {(result.Value.Success ? "成功" : "失败")} - {result.Value.Message}");
-                }
-
-                // 输出最终数据
-                Console.WriteLine("\n=== 上下文数据 ===");
-                Console.WriteLine($"最终结果: {context.GetData<string>("finalResult")}");
-            }
-            catch (CyclicDependencyException ex)
-            {
-                Console.WriteLine($"编排错误: {ex.Message}");
-            }
+            Console.WriteLine($"最终结果：{multiply_result.Data}");
         }
-        async public static Task Test2()
+        async static Task Test2()
         {
-            // 准备执行上下文
-            var context = new PluginContext();
-            context.SetData("initial", "value");
+            //日志事件注册
+            PluginClient.SubscribeToLogs((msg) => Console.WriteLine(msg));
+            //插件创建
+            var add1 = PluginClient.Create("加法1", typeof(AddPlugin));
+            var add2 = PluginClient.Create("加法2", typeof(AddPlugin));
+            var multiply = PluginClient.Create("乘法1", typeof(MultiplyPlugin));
+            //插件执行,并行
+            var add_result = await PluginClient.TogetherRun(
+                async () => await add1.ExecuteAsync(new PluginContext().SetData((2, 3))),
+                async () => await add2.ExecuteAsync(new PluginContext().SetData((4, 5))));
 
-            // 创建DAG管理器
-            var dag = new PluginDag();
+            var add1_data = (int) add_result[0].Data;
+            var add2_data = (int) add_result[1].Data;
+            Console.WriteLine($"加法1结果：{add1_data}");
+            Console.WriteLine($"加法2结果：{add2_data}");
 
-            // 创建工具节点
-            var dataLoader = new DataProcessing
-            {
-                Id = "loader",
-                Name = "加载器",
-                InputKey = "initial",
-                OutputKey = "rawData",
-                ProcessingFunction = (input) => $"[loader_{input}]"
-            };
+            var multiply_result = await PluginClient.Run(
+                async () => await multiply.ExecuteAsync(
+                    new PluginContext().SetData((add1_data, add2_data))));
 
-            var dataProcessor1 = new DataProcessing
-            {
-                Id = "processor1",
-                Name = "处理器1",
-                InputKey = "rawData",
-                OutputKey = "process1",
-                ProcessingFunction = (input) => {
-                    Thread.Sleep(20);
-                    return $"[{input}_processed1]";
-                }
-            };
-            var dataProcessor2 = new DataProcessing
-            {
-                Id = "processor2",
-                Name = "处理器2",
-                InputKey = "rawData",
-                OutputKey = "process2",
-                ProcessingFunction = (input) => $"[{input}_processed2]"
-            };
-
-            var dataCollector = new LambdaPlugin((ctx, output) =>
-            {
-                string InputKey1 = "process1";
-                string InputKey2 = "process2";
-                context.SetData(output, $"[{ctx.GetData<string>(InputKey1)}_{ctx.GetData<string>(InputKey2)}_final]");
-            })
-            {
-                Id = "collector",
-                Name = "收集器",
-                OutputKey = "finalResult"
-            };
-
-            // 添加节点到DAG
-            dag.AddNode(dataLoader);
-            dag.AddNode(dataProcessor1);
-            dag.AddNode(dataProcessor2);
-            dag.AddNode(dataCollector);
-
-            // 连接节点
-            dag.ConnectNodes(dataLoader, dataProcessor1);
-            dag.ConnectNodes(dataLoader, dataProcessor2);
-            dag.ConnectNodes(dataProcessor1, dataCollector);
-            dag.ConnectNodes(dataProcessor2, dataCollector);
-
-            // 配置执行器
-            var config = new ExecutionConfig
-            {
-                Mode = ExecutionMode.Parallel,
-                MaxDegreeOfParallelism = 4,
-                ContinueOnFailure = false
-            };
-
-            var executor = new PluginClient(dag, config);
-
-            try
-            {
-                // 打印图中工具信息
-                Console.WriteLine("\n=== 图中工具信息 ===");
-                foreach (var info in dag.GetGraphNodeInofs())
-                {
-                    Console.WriteLine(info);
-                }
-                // 打印图结构
-                Console.WriteLine("\n=== 图结构 ===");
-                Console.WriteLine(dag.ToString());
-
-                // 执行工具
-                var results = await executor.ExecuteAsync(context);
-
-                //输入执行日志
-                Console.WriteLine("\n=== 执行日志 ===");
-                Console.WriteLine(executor.ExecutionLog);
-                // 输出执行结果
-                Console.WriteLine("\n=== 执行结果汇总 ===");
-                foreach (var result in results)
-                {
-                    Console.WriteLine($"{result.Key}: {(result.Value.Success ? "成功" : "失败")} - {result.Value.Message}");
-                    Console.WriteLine($"运行时间：{result.Value.Runtime}ms");
-                }
-
-                // 输出最终数据
-                Console.WriteLine("\n=== 上下文数据 ===");
-                Console.WriteLine($"最终结果: {context.GetData<string>("finalResult")}");
-            }
-            catch (CyclicDependencyException ex)
-            {
-                Console.WriteLine($"编排错误: {ex.Message}");
-            }
+            Console.WriteLine($"最终结果：{multiply_result.Data}");
         }
     }
 }
