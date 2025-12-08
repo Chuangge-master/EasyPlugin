@@ -6,3 +6,9 @@
 
 * 插件的编排
 * 插件的串并行运行
+
+# 运行效果
+
+1. Example_net472
+
+![](./assets/Example_net472.png)
