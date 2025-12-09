@@ -10,7 +10,7 @@ namespace Example_net472
 {
     public class AddPlugin : IPlugin
     {
-        public string Name { get; set; } = "AddPlugin";
+        public string Name { get; set; }
 
         async public Task<PluginContext> ExecuteAsync(PluginContext context)
         {

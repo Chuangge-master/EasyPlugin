@@ -25,12 +25,12 @@ namespace EasyPlugin.Core
 
             return await Task.WhenAll(taskArray);
         }
-        public static PluginProxy Create(string name, Type pluginType)
+        public static PluginProxy Create(string name, Type pluginType, double timeout = 3000, IDataValidate validate = null)
         {
             return !(Activator.CreateInstance(pluginType) is IPlugin plugin) 
-                ? throw new Exception("pluginType is not IPlugin") : new PluginProxy(plugin, _logger) { Name = name};
+                ? throw new Exception("pluginType is not IPlugin") : new PluginProxy(plugin, _logger, timeout, validate) { Name = name};
         }
-        public static void SubscribeToLogs(Action<string> onLogAdded)
+        public static void RegisterLogHandler(Action<string> onLogAdded)
         {
             ((PluginLogger)_logger).OnLogAdded += onLogAdded;
         }

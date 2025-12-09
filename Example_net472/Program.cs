@@ -1,4 +1,5 @@
 ﻿using EasyPlugin.Core;
+using EasyPlugin.DataValidates;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,29 +10,29 @@ namespace Example_net472
     {
         static void Main(string[] args)
         {
-            //Test1().GetAwaiter().GetResult();
-            Test2().GetAwaiter().GetResult();
+            Test1().GetAwaiter().GetResult();
+            //Test2().GetAwaiter().GetResult();
             Console.ReadLine();
         }
         async static Task Test1()
         {
             //日志事件注册
-            PluginClient.SubscribeToLogs((msg)=> Console.WriteLine(msg));
+            PluginClient.RegisterLogHandler((msg)=> Console.WriteLine(msg));
             //插件创建
             var add = PluginClient.Create("加法1", typeof(AddPlugin));
-            var multiply = PluginClient.Create("乘法1", typeof(MultiplyPlugin));
+            var multiply = PluginClient.Create("乘法1", typeof(MultiplyPlugin), validate: new TypeValidate(typeof(ValueTuple<int, int>)));
             //插件执行
             var add_result = await PluginClient.Run(
                 async ()=> await add.ExecuteAsync(new PluginContext().SetData((2,3))));
             var multiply_result = await PluginClient.Run(
-                async () => await multiply.ExecuteAsync(new PluginContext().SetData(((int)add_result.Data, 3))));
+                async () => await multiply.ExecuteAsync(add_result));
 
             Console.WriteLine($"最终结果：{multiply_result.Data}");
         }
         async static Task Test2()
         {
             //日志事件注册
-            PluginClient.SubscribeToLogs((msg) => Console.WriteLine(msg));
+            PluginClient.RegisterLogHandler((msg) => Console.WriteLine(msg));
             //插件创建
             var add1 = PluginClient.Create("加法1", typeof(AddPlugin));
             var add2 = PluginClient.Create("加法2", typeof(AddPlugin));
