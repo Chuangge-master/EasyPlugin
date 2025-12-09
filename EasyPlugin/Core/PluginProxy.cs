@@ -66,8 +66,8 @@ namespace EasyPlugin.Core
             }
             catch (TimeoutException)
             {
-                result.Error($"运行超出限制时间{_timeout.TotalMilliseconds}毫秒");
-                _logger.Log(Name, $"运行超出限制时间{_timeout.TotalMilliseconds}毫秒");
+                result.Error($"运行超出限制时间({_timeout.TotalMilliseconds}毫秒)");
+                _logger.Log(Name, $"运行超出限制时间({_timeout.TotalMilliseconds}毫秒)");
             }
             catch (Exception ex)
             {
