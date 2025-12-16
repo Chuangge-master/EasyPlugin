@@ -35,18 +35,15 @@ var add1 = PluginClient.Create("加法1", typeof(AddPlugin), 3000, new TypeValid
 ## 插件串行运行
 
 ```csharp
-var add_result = await PluginClient.Run(
-    async ()=> await add.ExecuteAsync(new PluginContext().SetData((2,3))));
-var multiply_result = await PluginClient.Run(
-    async () => await multiply.ExecuteAsync(new PluginContext().SetData(((int)add_result.Data, 3))));
+var add_result = await PluginClient.Run(add, new int[] { 2, 3 });
+var multiply_result = await PluginClient.Run(multiply, new int[] { (int)add_result.Data, 5 });
 ```
 
 ## 插件并行运行
 
 ```csharp
-var add_result = await PluginClient.TogetherRun(
-    async () => await add1.ExecuteAsync(new PluginContext().SetData((2, 3))),
-    async () => await add2.ExecuteAsync(new PluginContext().SetData((4, 5))));
+var add_result = await PluginClient.TogetherRun(new List<PluginProxy> { add1, add2 },new List<object> {
+                new int[] { 2, 3 }, new int[] { 4, 5 } });
 ```
 
 ## 运行日志添加事件注册

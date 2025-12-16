@@ -9,21 +9,34 @@ namespace EasyPlugin.Core
     public class PluginClient
     {
         private static readonly IPluginLogger _logger = new PluginLogger();
-
-        async static public Task<PluginContext> Run(Func<Task<PluginContext>> task)
+        async static public Task<PluginContext> Run(PluginProxy pluginProxy, object data)
         {
-            return await task();
+            PluginContext context;
+            if(data is PluginContext) context = data as PluginContext;
+            else context = new PluginContext().SetData(data);
+
+            return await pluginProxy.ExecuteAsync(context);
         }
-        async static public Task<PluginContext[]> TogetherRun(params Func<Task<PluginContext>>[] tasks)
+        async static public Task<PluginContext[]> TogetherRun(List<PluginProxy> pluginProxies, List<object> datas)
         {
-            var taskArray = new Task<PluginContext>[tasks.Length];
-
-            for (int i = 0; i < tasks.Length; i++)
+            if(pluginProxies.Count != datas.Count) throw new Exception("插件数量和上下文数量不匹配");
+            var contexts = new PluginContext[datas.Count];
+            for (int i = 0; i < datas.Count; i++)
             {
-                taskArray[i] = tasks[i]();
+                if (datas[i] is PluginContext) contexts[i] = datas[i] as PluginContext;
+                else contexts[i] = new PluginContext().SetData(datas[i]);
             }
+            //并行运行
+            var tasks = new List<Task<PluginContext>>();
+            for (int i = 0; i < pluginProxies.Count; i++)
+            {
+                tasks.Add(pluginProxies[i].ExecuteAsync(contexts[i]));
+            }
+            
+            var result = await Task.WhenAll(tasks);
 
-            return await Task.WhenAll(taskArray);
+            return result;
+
         }
         public static PluginProxy Create(string name, Type pluginType, double timeout = 3000, IDataValidate validate = null)
         {

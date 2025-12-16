@@ -15,9 +15,9 @@ namespace Example_net472
         async public Task<PluginContext> ExecuteAsync(PluginContext context)
         {
             await Task.Delay(1000);
-            var data = (ValueTuple<int, int>)context.Data;
+            var data = (int[])context.Data;
             var result = new PluginContext();
-            result.Data = data.Item1 * data.Item2;
+            result.Data = data[0] * data[1];
             return result;
         }
     }
